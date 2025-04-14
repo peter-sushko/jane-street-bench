@@ -1,56 +1,97 @@
-#%%
 from litellm import completion
-
-def solve_puzzle_with_llm(text, model_name):
-    """
-    Solve a text-based puzzle using an LLM.
-    
-    Args:
-        text (str): Text description of the puzzle
-        model_name (str): Name of the LLM model to use (default: "gpt-4o")
-    
-    Returns:
-        str: The LLM's solution to the puzzle
-    """
-    # Prepare the messages with the puzzle text
-    messages = [
-        {
-            "role": "system",
-            "content": "You are a puzzle-solving assistant."
-        },
-        {
-            "role": "user",
-            "content": f"Please solve this puzzle:\n\n{text}"
-        }
-    ]
-    
-    # Call the LLM using LiteLLM
-    response = completion(
-        model=model_name,
-        messages=messages,
-        extra_body={"no-log": True}
-    )
-    
-    # Extract and return the solution
-    solution = response.choices[0].message.content
-    return solution
-
-#%%
-def solve_puzzle_from_file(file_path, model_name):
-    with open(file_path, 'r') as file:
-        puzzle_text = file.read()
-    return solve_puzzle_with_llm(puzzle_text, model_name)
-
 from dotenv import load_dotenv
+import os
+import json
+from datetime import datetime
 
-# Load environment variables from .env file
-load_dotenv()
+MODELS = {
+    "gpt-4": {
+        "provider": "openai",
+        "model": "gpt-4",
+        "env_key": "OPENAI_API_KEY"
+    },
+    "claude-3": {
+        "provider": "anthropic",
+        "model": "claude-3-opus-20240229",
+        "env_key": "ANTHROPIC_API_KEY"
+    },
+    "gemini": {
+        "provider": "google",
+        "model": "gemini-pro",
+        "env_key": "GOOGLE_API_KEY"
+    }
+}
 
-# Get API key from environment variable
-# Make sure OPENAI_API_KEY is set in the .env file
+NUM_ATTEMPTS = 2  # Number of attempts per model per puzzle
 
-# Replace with the actual path to your puzzle file
-puzzle_file = "puzzles/current.txt"
-solution = solve_puzzle_from_file(puzzle_file, "openai/gpt-4o")
-print(f"Solution:\n{solution}")
-# %%
+def check_api_keys():
+    missing_keys = []
+    for model_name, config in MODELS.items():
+        if not os.getenv(config["env_key"]):
+            missing_keys.append(f"{model_name} ({config['env_key']})")
+    return missing_keys
+
+def solve_puzzle(puzzle_text, model_config, attempt_num):
+    try:
+        if not os.getenv(model_config["env_key"]):
+            return f"Error: Missing API key for {model_config['provider']} ({model_config['env_key']})"
+            
+        messages = [
+            {"role": "system", "content": "Solve this puzzle."},
+            {"role": "user", "content": puzzle_text}
+        ]
+        response = completion(
+            model=f"{model_config['provider']}/{model_config['model']}",
+            messages=messages
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+def main():
+    load_dotenv()
+    
+    # Check for missing API keys
+    missing_keys = check_api_keys()
+    if missing_keys:
+        print("Warning: Missing API keys for:", ", ".join(missing_keys))
+        print("These models will be skipped")
+    
+    puzzle_dir = "puzzles"
+    results_dir = "results"
+    os.makedirs(results_dir, exist_ok=True)
+    
+    # Get the first puzzle file
+    puzzle_files = [f for f in os.listdir(puzzle_dir) if f.endswith(".txt")]
+    if not puzzle_files:
+        print("No puzzle files found!")
+        return
+        
+    filename = puzzle_files[0]
+    with open(os.path.join(puzzle_dir, filename), 'r') as f:
+        puzzle = f.read()
+        
+    results = {
+        "puzzle": puzzle,
+        "timestamp": datetime.now().isoformat(),
+        "runs": {}
+    }
+    
+    for model_name, model_config in MODELS.items():
+        if os.getenv(model_config["env_key"]):
+            results["runs"][model_name] = []
+            for attempt in range(NUM_ATTEMPTS):
+                print(f"Running {model_name} - Attempt {attempt+1}/{NUM_ATTEMPTS}")
+                answer = solve_puzzle(puzzle, model_config, attempt)
+                results["runs"][model_name].append(answer)
+        else:
+            results["runs"][model_name] = [f"Skipped: Missing API key ({model_config['env_key']})"]
+    
+    # Save results
+    output_file = os.path.join(results_dir, f"{filename}_results.json")
+    with open(output_file, 'w') as f:
+        json.dump(results, f, indent=2)
+    print(f"Results saved to {output_file}")
+
+if __name__ == "__main__":
+    main()

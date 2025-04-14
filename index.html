@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>LLMs vs Jane Street</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f6fa;
+      color: #2c3e50;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+
+    .desc {
+      text-align: center;
+      font-size: 1rem;
+      margin-bottom: 2rem;
+      color: #444;
+    }
+
+    .desc a {
+      color: inherit;
+      text-decoration: underline;
+    }
+
+    table {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      background: #2c3e50;
+      color: white;
+    }
+
+    tr:hover {
+      background: #f0f3f7;
+    }
+
+    .correct {
+      color: #2ecc71;
+      font-weight: 600;
+    }
+
+    .incorrect {
+      color: #e74c3c;
+      font-weight: 600;
+    }
+
+    .caption {
+      text-align: center;
+      color: #666;
+      margin-top: 2rem;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Can your AI get a wall street job interview?</h1>
+  <div class="desc">
+    We evaluate reasoning LLMS on the <a href="https://www.janestreet.com/puzzles/current-puzzle/" target="_blank">current Jane Street puzzle</a>.
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Model</th>
+        <th>Correct</th>
+        <th>Attempts</th>
+        <th>Success Rate</th>
+      </tr>
+    </thead>
+    <tbody id="results-table">
+      <!-- Fills from CSV -->
+    </tbody>
+  </table>
+
+  <div class="caption">Auto-evaluated | April 2025</div>
+
+  <script>
+    fetch('analysis/2025_04_model_results.csv')
+      .then(res => res.text())
+      .then(data => {
+        const rows = data.trim().split('\n').slice(1);
+        const table = document.getElementById('results-table');
+        rows.forEach(row => {
+          const [model, correct, total, rate] = row.split(',');
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${model}</td>
+            <td class="${parseInt(correct) > 0 ? 'correct' : 'incorrect'}">${correct}</td>
+            <td>${total}</td>
+            <td>${rate}</td>
+          `;
+          table.appendChild(tr);
+        });
+      });
+  </script>
+</body>
+</html>
