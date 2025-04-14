@@ -46,8 +46,7 @@ pip install -r requirements.txt
 
 ## To-Do
 
-- Implement functionality to use the correct answer for puzzles.
-- Explore and integrate more models for solving puzzles.
-- Enhance the user interface for better interaction.
-- Add logging and error handling for robustness.
-- Consider adding a feature to track puzzle-solving performance over time.
+- [ ] USE THE ACTUALLY CORRECT ANSWER
+- [ ] Add more models
+- [ ] More test per model
+- [ ] Show the model outputs on the website
