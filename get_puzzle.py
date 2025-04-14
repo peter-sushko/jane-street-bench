@@ -20,15 +20,14 @@ def get_puzzle():
     
     return puzzle
 
-# Create puzzles directory with year/month structure
+# Create puzzles directory with year structure
 now = datetime.now()
-puzzles_dir = Path('puzzles') / str(now.year) / f"{now.month:02d}"
+puzzles_dir = Path('puzzles') / str(now.year)
 puzzles_dir.mkdir(parents=True, exist_ok=True)
 
-# Save puzzle with timestamp
+# Save puzzle with month as filename
 puzzle = get_puzzle()
 if puzzle:
-    timestamp = now.strftime("%Y%m%d_%H%M%S")
-    filename = f"puzzle_{timestamp}.txt"
+    filename = f"{now.month:02d}.txt"
     with open(puzzles_dir / filename, 'w') as f:
         f.write(puzzle) 
