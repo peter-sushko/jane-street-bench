@@ -1,13 +1,13 @@
-# Jane Street Puzzle Fetcher
+# Jane Street Puzzle Benchmark
 
-A simple Python script to fetch the current puzzle from Jane Street's website.
+Benchmark project for solving Jane Street puzzles. Downloads the current puzzle from Jane Street's website and saves it in `puzzles/YYYY_MM.txt` format.
 
 ## Setup
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/petrsushko/jane-street-puzzle-fetcher.git
-cd jane-street-puzzle-fetcher
+git clone git@github.com:peter-sushko/jane-street-bench.git
+cd jane-street-bench
 ```
 
 2. Install dependencies:
@@ -19,25 +19,5 @@ pip install -r requirements.txt
 
 Run the script to fetch the current puzzle:
 ```bash
-python src/fetch_puzzle.py
+python get_puzzle.py
 ```
-
-The puzzle will be saved in the `puzzles` directory.
-
-## Project Structure
-
-```
-.
-├── README.md
-├── requirements.txt
-├── src/
-│   └── fetch_puzzle.py
-├── puzzles/
-│   └── current.txt
-└── tests/
-    └── test_fetch_puzzle.py
-```
-
-## License
-
-MIT License 
